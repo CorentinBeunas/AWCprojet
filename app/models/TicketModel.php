@@ -6,19 +6,22 @@ require_once __DIR__ . '/../core/Database.php';
 final class TicketModel {
 
   public function create($titre, $description, $categorie, $priorite, $auteurId) {
-    $sql = "INSERT INTO tickets (titre, description, categorie, priorite, auteur_id)
-            VALUES (:titre, :description, :categorie, :priorite, :auteur_id)";
+
+    $sql = "INSERT INTO tickets
+            (titre, description, categorie, priorite, statut, auteur_id, created_at)
+            VALUES
+            (:titre, :description, :categorie, :priorite, 'OPEN', :auteur_id, NOW())";
 
     $stmt = Database::pdo()->prepare($sql);
 
-    return $stmt->execute([
-      'titre' => $titre,
-      'description' => $description,
-      'categorie' => $categorie,
-      'priorite' => $priorite,
-      'auteur_id' => $auteurId
+    $stmt->execute([
+        'titre' => $titre,
+        'description' => $description,
+        'categorie' => $categorie,
+        'priorite' => $priorite,
+        'auteur_id' => $auteurId
     ]);
-  }
+}
 
   public function findByAuteur($auteurId) {
     $sql = "SELECT * FROM tickets
@@ -83,6 +86,17 @@ public function assignToTech($ticketId, $techId) {
     return $stmt->execute([
         'techId' => $techId,
         'id' => $ticketId
+    ]);
+}
+public function updatePriority($id, $priority) {
+
+    $sql = "UPDATE tickets SET priorite = :priorite WHERE id = :id";
+
+    $stmt = Database::pdo()->prepare($sql);
+
+    $stmt->execute([
+        'priorite' => $priority,
+        'id' => $id
     ]);
 }
 }

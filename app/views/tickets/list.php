@@ -26,11 +26,13 @@
     </div>
 </form>
 <?php endif; ?>
-<h1 class="h4 mb-3">Mes tickets</h1>
 
+<h1 class="h4 mb-3">Mes tickets</h1>
+<?php if ($user['role'] === 'ETUDIANT'): ?>
 <a href="index.php?route=ticket-create" class="btn btn-primary mb-3">
   Nouveau ticket
 </a>
+<?php endif; ?>
 
 <?php if (empty($tickets)): ?>
   <div class="alert alert-info">Aucun ticket pour le moment.</div>

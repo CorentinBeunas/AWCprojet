@@ -1,16 +1,20 @@
 <?php
 declare(strict_types=1);
+
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../models/TicketModel.php';
 
 final class DashboardController {
 
   public function home(){
     Auth::start();
+
     if (Auth::user()) {
       header("Location: index.php?route=dashboard");
       exit;
     }
+
     header("Location: index.php?route=login");
   }
 
@@ -18,14 +22,21 @@ final class DashboardController {
     Auth::start();
     Auth::requireLogin();
 
-    $u = Auth::user();
+    $user = Auth::user();
+    $tickets = [];
 
-    if ($u['role'] === 'ADMIN') {
-      View::render('dashboards/admin', ['title'=>'Admin','user'=>$u]);
-    } elseif ($u['role'] === 'TECH') {
-      View::render('dashboards/tech', ['title'=>'Tech','user'=>$u]);
-    } elseif ($u['role'] === 'ETUDIANT') {
-      View::render('dashboards/user', ['title'=>'User','user'=>$u]);
+    $ticketModel = new TicketModel();
+
+    if ($user['role'] === 'ETUDIANT') {
+      $tickets = $ticketModel->findByAuteur($user['id']);
+    } else {
+      $tickets = $ticketModel->findAll();
     }
+
+    View::render('dashboards/dashboard', [
+      'title' => 'Dashboard',
+      'user' => $user,
+      'tickets' => $tickets
+    ]);
   }
 }

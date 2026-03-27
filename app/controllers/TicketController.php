@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../models/TicketModel.php';
+require_once __DIR__ . '/../models/MessageModel.php';
 
 final class TicketController {
 
@@ -14,6 +15,10 @@ final class TicketController {
     $user = Auth::user();
     $ticketModel = new TicketModel();
 
+    // ✅ toujours définir les variables
+    $statut = isset($_GET['statut']) ? $_GET['statut'] : null;
+    $priorite = isset($_GET['priorite']) ? $_GET['priorite'] : null;
+
     if ($user['role'] === 'ETUDIANT') {
 
         // L'étudiant voit uniquement ses tickets
@@ -22,20 +27,20 @@ final class TicketController {
     } elseif ($user['role'] === 'TECH') {
 
         // Le technicien peut filtrer
-        $statut = $_GET['statut'] ? $_GET['statut'] : null;
-        $priorite = $_GET['priorite'] ? $_GET['priorite'] : null;
-
         $tickets = $ticketModel->findAll($statut, $priorite);
 
     } else {
 
-        // ADMIN (si tu veux tout afficher)
+        // ADMIN
         $tickets = $ticketModel->findAll();
     }
 
     View::render('tickets/list', [
         'title' => 'Liste des tickets',
-        'tickets' => $tickets
+        'tickets' => $tickets,
+        'user' => $user,
+        'statut' => $statut ? $statut : '',
+        'priorite' => $priorite ? $priorite : ''
     ]);
 }
 
@@ -51,18 +56,19 @@ final class TicketController {
       $titre = trim($_POST['titre'] ? $_POST['titre'] : '');
       $description = trim($_POST['description'] ? $_POST['description'] : '');
       $categorie = trim($_POST['categorie'] ? $_POST['categorie'] : '');
-      $priorite = trim($_POST['priorite'] ? $_POST['priorite'] : '');
 
-      if (!$titre || !$description || !$categorie || !$priorite) {
-        $error = "Tous les champs sont obligatoires.";
+      $priorite = 'FAIBLE';
+
+      if (!$titre || !$description || !$categorie) {
+      $error = "Tous les champs sont obligatoires.";
       } else {
 
         (new TicketModel())->create(
-          $titre,
-          $description,
-          $categorie,
-          $priorite,
-          $user['id']
+            $titre,
+            $description,
+            $categorie,
+            $priorite,
+            $user['id']
         );
 
         header("Location: index.php?route=tickets");
@@ -76,47 +82,46 @@ final class TicketController {
     ]);
   }
   public function show() {
-  Auth::start();
-  Auth::requireLogin();
 
-  $user = Auth::user();
-  $id = (int)($_GET['id'] ? $_GET['id'] : 0);
+    Auth::start();
+    Auth::requireLogin();
 
-  if (!$id) {
-    header("Location: index.php?route=tickets");
-    exit;
-  }
+    $user = Auth::user();
 
-  $ticket = (new TicketModel())->findById($id);
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-  if (!$ticket) {
-    header("Location: index.php?route=tickets");
-    exit;
-  }
+    if (!$id) {
+        header("Location: index.php?route=tickets");
+        exit;
+    }
 
-  // 🔐 Sécurité : étudiant ne peut voir que ses tickets
-  if ($user['role'] === 'ETUDIANT' && $ticket['auteur_id'] != $user['id']) {
-    header("Location: index.php?route=tickets");
-    exit;
-  }
-
-  View::render('tickets/show', [
-    'title' => 'Détail du ticket',
-    'ticket' => $ticket,
-    'user' => $user
-  ]);
-  require_once __DIR__ . '/../models/MessageModel.php';
-
+    $ticketModel = new TicketModel();
     $messageModel = new MessageModel();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ticket = $ticketModel->findById($id);
+
+    if (!$ticket) {
+        header("Location: index.php?route=tickets");
+        exit;
+    }
+
+    $messages = $messageModel->findByTicket($id);
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $contenu = trim($_POST['contenu'] ? $_POST['contenu'] : '');
+
     if ($contenu) {
         $messageModel->create($id, $user['id'], $contenu);
     }
-}
 
-$messages = $messageModel->findByTicket($id);
+    header("Location: index.php?route=ticket-show&id=".$id);
+    exit;
+}
+    View::render('tickets/show', [
+        'ticket' => $ticket,
+        'messages' => $messages,
+        'user' => $user
+    ]);
 }
 public function changeStatus() {
 
@@ -187,6 +192,27 @@ public function take() {
     }
 
     header("Location: index.php?route=ticket-show&id=" . $id);
+    exit;
+}
+public function changePriority() {
+
+    Auth::start();
+    Auth::requireLogin();
+    $user = Auth::user();
+
+    if ($user['role'] !== 'TECH') {
+        header("Location: index.php");
+        exit;
+    }
+
+    $id = (int)($_GET['id'] ? $_GET['id'] : 0);
+    $priority = $_GET['priorite'] ? $_GET['priorite'] : '';
+
+    if ($id && $priority) {
+        (new TicketModel())->updatePriority($id, $priority);
+    }
+
+    header("Location: index.php?route=ticket-show&id=".$id);
     exit;
 }
 }

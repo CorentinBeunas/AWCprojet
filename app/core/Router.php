@@ -36,6 +36,13 @@ final class Router {
         require_once __DIR__ . '/../controllers/TicketController.php';
         (new TicketController())->take();
         return;
+        case 'ticket-priority':
+        require_once __DIR__ . '/../controllers/TicketController.php';
+        (new TicketController())->changePriority();
+        return;
+        case 'register':
+        (new AuthController())->register();
+        return;
     }
   }
 }

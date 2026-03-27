@@ -11,4 +11,17 @@ final class UserModel {
     $u = $stmt->fetch();
     return $u ?: null;
   }
+  public function createStudent($nom, $email, $hash){
+
+  $sql = "INSERT INTO utilisateurs (nom, email, mdp_hash, role, actif)
+          VALUES (:nom, :email, :hash, 'ETUDIANT', 1)";
+
+  $stmt = Database::pdo()->prepare($sql);
+
+  return $stmt->execute([
+    'nom' => $nom,
+    'email' => $email,
+    'hash' => $hash
+  ]);
+}
 }

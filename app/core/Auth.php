@@ -7,10 +7,9 @@ final class Auth {
       session_start();
     }
   }
-
-  public static function user(){
-    return $_SESSION['user'] ?$_SESSION['user'] : null;
-  }
+public static function user(){
+    return isset($_SESSION['user']) ? $_SESSION['user'] : null;
+}
 
   public static function requireLogin(){
     if (!self::user()) {

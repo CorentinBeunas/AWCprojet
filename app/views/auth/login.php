@@ -7,7 +7,11 @@
 <input type="email" name="email" class="form-control mb-3" placeholder="Email" required>
 <input type="password" name="password" class="form-control mb-3" placeholder="Mot de passe" required>
 <button class="btn btn-primary w-100">Se connecter</button>
+<a href="index.php?route=register" class="btn btn-secondary w-100">
+  Créer un compte étudiant
+</a>
 </form>
+
 </div>
 </div>
 </div>

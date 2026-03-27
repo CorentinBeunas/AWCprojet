@@ -13,13 +13,15 @@ $u = Auth::user();
 
     <?php if ($u): ?>
       <div>
-
+        <a href="index.php?route=dashboard" class="btn btn-outline-primary btn-sm me-2">
+        Dashboard
+        </a>
         <?php if ($u['role'] === 'ETUDIANT'): ?>
           <a href="index.php?route=tickets" class="btn btn-outline-primary btn-sm me-2">
             Mes tickets
           </a>
-          <a href="index.php?route=ticket-create" class="btn btn-primary btn-sm me-2">
-            Nouveau ticket
+          <a href="index.php?route=ticket-create" class="btn btn-success btn-sm me-2">
+          Nouveau ticket
           </a>
         <?php endif; ?>
 
