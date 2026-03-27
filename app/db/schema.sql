@@ -1,0 +1,12 @@
+
+CREATE DATABASE IF NOT EXISTS campus_helpdesk;
+USE campus_helpdesk;
+
+CREATE TABLE utilisateurs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nom VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  mdp_hash VARCHAR(255) NOT NULL,
+  role ENUM('ETUDIANT','TECH','ADMIN') NOT NULL,
+  actif TINYINT(1) DEFAULT 1
+);
